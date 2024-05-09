@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from datetime import timedelta
+#from routes.order_bp import order_bp
 import os
 
 from models import db, User, Parcel, Order, Profile
@@ -27,4 +28,4 @@ def create_app():
     return app
 
 app = create_app()
-
+#app.register_blueprint(order_bp)
