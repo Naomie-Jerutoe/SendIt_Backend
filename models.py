@@ -12,6 +12,9 @@ class User(db.Model):
   password = db.Column(db.String())
   is_admin = db.Column(db.Boolean, default=False)
   
+  def __repr__(self):
+        return f"<User {self.username}>"
+  
 class Parcel(db.Model):
   __tablename__ = 'parcels'
   
@@ -25,6 +28,9 @@ class Parcel(db.Model):
   
   users = db.relationship('User', backref='parcels')
   
+  def __repr__(self):
+        return f"<Parcel {self.description}>"
+  
 class Order(db.Model):
   __tablename__ = 'orders'
   
@@ -33,6 +39,9 @@ class Order(db.Model):
   parcel_id = db.Column(db.Integer, db.ForeignKey('parcels.id'))
 
   parcels = db.relationship('Parcel', backref='orders')
+  
+  def __repr__(self):
+        return f"<Order {self.status}, {self.parcel_id} >"
 
 class Profile(db.Model):
   __tablename__ = 'profiles'
@@ -44,5 +53,18 @@ class Profile(db.Model):
   user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
   
   users = db.relationship('User', backref='profiles')
+  
+  def __repr__(self):
+        return f"<Profile {self.user_id}>"
+
+class TokenBlocklist(db.Model):
+    __tablename__ = 'token_blocklist'
+    
+    id = db.Column(db.Integer(), primary_key=True)
+    jti = db.Column(db.String(), nullable=False)
+    created_at = db.Column(db.DateTime(), default=db.func.now())
+    
+    def __repr__(self):
+        return f"<Token {self.jti}>"
 
 
