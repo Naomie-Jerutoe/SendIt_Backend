@@ -24,6 +24,9 @@ def create_app():
     JWTManager(app)
     CORS(app)
 
+    #register blueprint
+    app.register_blueprint(user_bp)
+
     return app
 
 app = create_app()
