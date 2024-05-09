@@ -50,7 +50,7 @@ def upgrade():
     )
     op.create_table('orders',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('delivered', 'enroute', 'canceled'), nullable=True),
+    sa.Column('status', sa.Enum('delivered', 'enroute', 'canceled', name='order_status'), nullable=True),
     sa.Column('parcel_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['parcel_id'], ['parcels.id'], ),
     sa.PrimaryKeyConstraint('id')
