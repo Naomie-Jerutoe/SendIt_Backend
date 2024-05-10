@@ -1,13 +1,22 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, get_jwt_identity
 from sqlalchemy.exc import IntegrityError
 from models import db, User, TokenBlocklist
 from auth_middleware import admin_required
 from datetime import datetime
+from itsdangerous import URLSafeTimedSerializer
+import logging
 
 users_bp = Blueprint('users', __name__)
 bcrypt = Bcrypt()
+
+# Secret key used for token generation
+SECRET_KEY = "NTo*|JRcOJ$)gT-"
+serializer = URLSafeTimedSerializer(SECRET_KEY)
+
+# Store reset tokens and their associated users in a dictionary
+reset_tokens = {}
 
 @users_bp.route('/signup', methods=['POST'])
 def signup():
@@ -68,3 +77,76 @@ def logout():
     db.session.add(blocked_token)
     db.session.commit()
     return jsonify({'detail': "Logged out Successfully"})
+
+@users_bp.route('/upgradeuser', methods=['POST'])
+@admin_required
+def upgrade_user():
+    data = request.get_json()
+
+    if 'userId' not in data:
+        return jsonify({'error': 'Missing userId field'}), 400
+
+    user_id = data['userId']
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    user.is_admin = True
+    db.session.commit()
+
+    return jsonify({'message': 'User upgraded to admin successfully'}), 200
+
+@users_bp.route('/forgotpassword', methods=['POST'])
+def forgot_password():
+    data = request.get_json()
+    email = data.get('email')
+    if not email:
+        return jsonify({'error': 'Missing email field'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Generate a unique reset token
+    token = serializer.dumps(email, salt='reset-password')
+
+    # Store the token and user ID in reset_tokens
+    reset_tokens[token] = user.id
+
+    # Render a template with the token to be displayed to the user
+    return render_template('reset_password.html', token=token)
+
+@users_bp.route('/resetpassword', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    token = data.get('token')
+    new_password = data.get('password')
+
+    if not token or not new_password:
+        return jsonify({'error': 'Missing token or password field'}), 400
+
+    # Verify if the token is valid and not expired
+    try:
+        email = serializer.loads(token, salt='reset-password', max_age=3600)
+    except:
+        return jsonify({'error': 'Invalid or expired token'}), 400
+
+    user_id = reset_tokens.get(token)
+    if not user_id:
+        return jsonify({'error': 'Invalid token'}), 400
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Update the user's password
+    hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+    user.password = hashed_password
+    db.session.commit()
+
+    # Remove the token from the reset_tokens dictionary
+    del reset_tokens[token]
+
+    return jsonify({'message': 'Password reset successfully'}), 200
+

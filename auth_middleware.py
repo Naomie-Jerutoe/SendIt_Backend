@@ -6,7 +6,7 @@ from models import User
 # Custom decorator to check if the user is an admin or super admin
 def admin_required(fn):
     @wraps(fn)
-    @jwt_required()  # Ensure a valid JWT token is present
+    @jwt_required()
     def wrapper(*args, **kwargs):
         current_user_data = get_jwt_identity()
         current_user_id = current_user_data.get('userId')
