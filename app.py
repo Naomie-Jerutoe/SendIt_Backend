@@ -1,3 +1,4 @@
+from routes.parcel_bp import parcel_bp
 from flask import Flask
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -20,10 +21,9 @@ def create_app():
     app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
     
-    app.config['CLOUDINARY_CLOUD_NAME'] = os.getenv('CLOUDINARY_CLOUD_NAME')
-    app.config['CLOUDINARY_API_KEY'] = os.getenv('CLOUDINARY_API_KEY')
-    app.config['CLOUDINARY_API_SECRET'] = os.getenv('CLOUDINARY_API_SECRET')
-    
+    #Register the blueprint
+    app.register_blueprint(parcel_bp)
+
 
     migrate = Migrate(app, db)
     db.init_app(app)
