@@ -1,8 +1,8 @@
-"""add token_blocklist table
+"""Initial migration
 
-Revision ID: 5a18045d7e6b
-Revises: 7ba191be411a
-Create Date: 2024-05-09 11:17:51.646855
+Revision ID: 5609669b34c5
+Revises: 5a18045d7e6b
+Create Date: 2024-05-09 15:47:01.530392
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5a18045d7e6b'
-down_revision = '7ba191be411a'
+revision = '5609669b34c5'
+down_revision = '5a18045d7e6b'
 branch_labels = None
 depends_on = None
 
@@ -56,7 +56,7 @@ def upgrade():
     )
     op.create_table('orders',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('order_status', 'delivered', 'enroute', 'canceled'), nullable=True),
+    sa.Column('status', sa.Enum('delivered', 'enroute', 'canceled', name='status'), nullable=True),
     sa.Column('parcel_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['parcel_id'], ['parcels.id'], ),
     sa.PrimaryKeyConstraint('id')
