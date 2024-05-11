@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
-from models import Order, db
+from models import Order, db, User
 from schemas import OrderSchema, orderSchema
+from auth_middleware import admin_required  #Import the admin_required decorator
+
 # Create a Blueprint for order-related routes with the prefix '/api/v1/orders'
 orders_bp = Blueprint('orders', __name__, url_prefix='/api/v1/orders')
 
@@ -25,18 +27,18 @@ def create_order():
 
 @orders_bp.route('/<int:order_id>', methods=['PUT'])
 @jwt_required()
+@admin_required  # Decorate the function with the admin_required decorator
 def update_order(order_id):
     try:
         data = request.get_json()
         order = Order.query.get(order_id)
         if not order:
             return jsonify({'error': 'Order not found'}), 404
-        #Check if the user is authorized to update the order
-        if order.parcel.user_id != get_jwt_identity() and not get_jwt_identity():
-            return jsonify({'error': 'You are not authorized to update this order'}), 403
-         #update the order status if provided in the request data
+
+        # Update the order status if provided in the request data
         if 'status' in data:
             order.status = data['status']
+
         db.session.commit()
 
         return jsonify({'message': 'Order updated successfully'}), 200

@@ -3,10 +3,9 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from datetime import timedelta
-#from routes.order_bp import order_bp
 import os
 
-from models import db, User, Parcel, Order, Profile
+#from models import db, User, Parcel, Order, Profile
 
 def create_app():
     app = Flask(__name__)
@@ -19,7 +18,8 @@ def create_app():
     app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
     
-
+    from models import db, User, Parcel, Order, Profile
+    
     migrate = Migrate(app, db)
     db.init_app(app)
     JWTManager(app)
@@ -28,4 +28,6 @@ def create_app():
     return app
 
 app = create_app()
-#app.register_blueprint(order_bp)
+
+if __name__ == '__main__':
+    app.run()
