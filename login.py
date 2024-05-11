@@ -6,7 +6,6 @@ from models import db, User, TokenBlocklist
 from auth_middleware import admin_required
 from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer
-import logging
 
 users_bp = Blueprint('users', __name__)
 bcrypt = Bcrypt()
