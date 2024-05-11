@@ -5,8 +5,10 @@ from flask_cors import CORS
 from datetime import timedelta
 from routes.user_bp import user_bp
 import os
+from routes.courier_bp import profile_bp
 
-from models import db, User, Parcel, Order, Profile
+from models import db, User, Parcel, Order, Profile, TokenBlocklist
+from routes.courier_bp import profile_bp
 
 def create_app():
     app = Flask(__name__)
@@ -18,15 +20,18 @@ def create_app():
     app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
     
+    app.config['CLOUDINARY_CLOUD_NAME'] = os.getenv('CLOUDINARY_CLOUD_NAME')
+    app.config['CLOUDINARY_API_KEY'] = os.getenv('CLOUDINARY_API_KEY')
+    app.config['CLOUDINARY_API_SECRET'] = os.getenv('CLOUDINARY_API_SECRET')
+    
 
     migrate = Migrate(app, db)
     db.init_app(app)
     JWTManager(app)
     CORS(app)
-
-    #register blueprint
-    app.register_blueprint(user_bp)
-
+    
+    app.register_blueprint(profile_bp)
+    
     return app
 
 app = create_app()
