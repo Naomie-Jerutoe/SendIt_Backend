@@ -7,9 +7,7 @@ from datetime import timedelta
 from routes.user_bp import user_bp
 import os
 from routes.courier_bp import profile_bp
-
 from models import db, User, Parcel, Order, Profile, TokenBlocklist
-from routes.courier_bp import profile_bp
 
 def create_app():
     app = Flask(__name__)
@@ -21,9 +19,9 @@ def create_app():
     app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
     
+
     #Register the blueprint
     app.register_blueprint(parcel_bp)
-
 
     migrate = Migrate(app, db)
     db.init_app(app)
@@ -35,3 +33,4 @@ def create_app():
     return app
 
 app = create_app()
+

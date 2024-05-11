@@ -14,6 +14,3 @@ def admin_required(fn):
         else:
             return make_response(jsonify({"message": "Admin access required"}), 403)
     return wrapper
-
-
-
