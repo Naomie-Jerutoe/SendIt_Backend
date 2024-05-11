@@ -10,10 +10,11 @@ ma = Marshmallow(user_bp)
 api = Api(user_bp)
 
 class Users(Resource):
-  @jwt_required()
+  #@jwt_required()
   def get(self):
     users = User.query.all()
     result = userSchema.dump(users, many=True)
+    print(result)
     return make_response(jsonify(result), 200)
 
 api.add_resource(Users, '/users')

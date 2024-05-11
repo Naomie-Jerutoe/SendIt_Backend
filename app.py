@@ -11,7 +11,7 @@ from models import db, User, Parcel, Order, Profile
 def create_app():
     app = Flask(__name__)
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://my_database_he6p_user:7dCWh8gZ2f6V2YieOfn1mgS4b9wfx7vo@dpg-coh5e0v79t8c73fsrohg-a.oregon-postgres.render.com/send_it_db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
     app.config['FLASK_SECRET_KEY'] = 'UVHUIJLKCVJVKJXLKV'
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
     app.config['JWT_BLACKLIST_ENABLED'] = True
