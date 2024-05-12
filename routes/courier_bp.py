@@ -1,9 +1,10 @@
 from flask import Blueprint, make_response, jsonify, request
 from flask_restful import Api, Resource
 from flask_marshmallow import Marshmallow
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required, get_jwt
 from schemas import profileSchema
 import cloudinary
+import cloudinary.utils
 import cloudinary.uploader
 
 from auth_middleware import admin_required
@@ -26,7 +27,8 @@ api.add_resource(UserProfile, '/profiles')
 class UploadProfilePicture(Resource):
   @jwt_required()
   def post(self):
-    user_id = get_jwt_identity()
+    user_claims = get_jwt()
+    user_id = user_claims['sub'].get('userId')
     
     if 'profile_photo' not in request.files:
       return make_response(jsonify({"error": "No picture provided"}))
@@ -71,24 +73,66 @@ class UploadProfilePicture(Resource):
 api.add_resource(UploadProfilePicture, '/upload_profile_picture')
 
 class RemoveProfilePicture(Resource):
-  @jwt_required()
-  def delete(self, profile_id):
-    user_id = get_jwt_identity()
-    profile = Profile.query.get_or_404(profile_id)
-    
-    # Check if the requesting user is the owner of the profile or an admin
-    current_user = User.query.get(user_id)
-    if profile.user_id != user_id and not current_user.is_admin:
-        return jsonify({'error': 'You are not authorized to modify this profile.'}), 403
-    
-    if profile.profile_picture:
-            public_id = cloudinary.uploader.get_public_id(profile.profile_picture)
-            cloudinary.uploader.destroy(public_id)
-            
-    # Remove the profile picture URL from the database
-    profile.profile_picture = None
-    db.session.commit()
-    
-    return make_response(jsonify({'message': 'Profile picture removed successfully.'}), 200)
+    @jwt_required()
+    def delete(self):
+        user_claims = get_jwt()
+        user_id = user_claims['sub'].get('userId')
 
-api.add_resource(RemoveProfilePicture, '/remove_profile_picture/<string:id>')
+        try:
+            profile = Profile.query.filter_by(user_id=user_id).first()
+
+            if profile:
+                # Check if the profile picture exists
+                if profile.profile_picture:
+                    # # Delete the image from Cloudinary
+                    public_id = profile.profile_picture.split('/')[-1].split('.')[0]
+                    cloudinary.uploader.destroy(public_id)
+
+                    # Remove the profile picture URL from the database
+                    profile.profile_picture = None
+                    db.session.commit()
+
+                    return make_response(jsonify({'message': 'Profile picture removed successfully.'}), 200)
+                else:
+                    return make_response(jsonify({"error": "Profile picture not found"}), 404)
+            else:
+                return make_response(jsonify({"error": "Profile not found"}), 404)
+        except Exception as e:
+            print(f"Error: {e}")
+            db.session.rollback()
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(RemoveProfilePicture, '/remove_profile_picture')
+
+class UpdateProfile(Resource):
+    @jwt_required()
+    def put(self):
+        user_claims = get_jwt()
+        user_id = user_claims['sub'].get('userId')
+
+        # Get the updated profile information from the request
+        updated_data = request.json
+        
+        try:
+            profile = Profile.query.filter_by(user_id=user_id).first()
+
+            if profile:
+                # Update the profile fields with the new information
+                if 'profile_picture' in updated_data:
+                    profile.profile_picture = updated_data['profile_picture']
+                if 'location' in updated_data:
+                    profile.location = updated_data['location']
+                
+                # Commit the changes to the database
+                db.session.commit()
+                
+                return make_response(jsonify({'message': 'Profile updated successfully'}), 200)
+            else:
+                return make_response(jsonify({"error": "Profile not found"}), 404)
+        except Exception as e:
+            print(f"Error: {e}")
+            db.session.rollback()
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(UpdateProfile, '/update_profile')
+
