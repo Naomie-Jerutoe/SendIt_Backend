@@ -14,7 +14,6 @@ class Users(Resource):
   def get(self):
     users = User.query.all()
     result = userSchema.dump(users, many=True)
-    print(result)
     return make_response(jsonify(result), 200)
 
 api.add_resource(Users, '/users')
