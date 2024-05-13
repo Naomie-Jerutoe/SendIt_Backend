@@ -29,7 +29,7 @@ class Parcel(db.Model):
   users = db.relationship('User', backref='parcels')
   
   def __repr__(self):
-        return f"<Parcel {self.description} ID: {self.id}>"
+        return f"<Parcel {self.description}>"
   
 class Order(db.Model):
   __tablename__ = 'orders'

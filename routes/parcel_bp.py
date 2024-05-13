@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Parcel, User, db
+from models import Parcel, User, db, Order
 from flask_restful import Api, Resource
 from auth_middleware import admin_required
 
@@ -48,7 +48,6 @@ class ViewAndCreateParcel(Resource):
         db.session.add(new_parcel)
         db.session.commit()
 
-        # Construct JSON response manually
         response_data = {
             "message": "Hooray! Your parcel order has been created successfully!",
             "parcel": {
@@ -82,29 +81,64 @@ class GetParcel(Resource):
 class ChangeRoute(Resource):
     @jwt_required()
     def put(self, parcel_id):
-        user_id = get_jwt_identity()
+        user_info = get_jwt_identity()
+        user_id = user_info.get('userId')
         parcel = Parcel.query.get(parcel_id)
-        if parcel and parcel.user_id == user_id and parcel.status != 'delivered':
-            data = request.get_json()
-            parcel.destination = data.get('destination')
-            db.session.commit()
-            return make_response(jsonify({"message": "Destination updated successfully! Your parcel is on its way to the new destination.", "parcel": parcel.__repr__()}), 200)
-        else:
-            return make_response(jsonify({"message": "Sorry, we can't change the destination of this parcel."}), 400)
 
-# # Route 4: Cancel a specific parcel delivery order
-# @parcel_bp.route('/parcels/<int:parcel_id>/cancel', methods=['PUT'])
+        if not parcel:
+            return {"message": "Parcel not found."}, 404
+
+        if parcel.user_id != user_id:
+            return {"message": "Unauthorized access. You are not allowed to modify this parcel"}, 403
+
+        order = Order.query.filter_by(parcel_id=parcel_id).first()
+
+        if not order:
+            return {"message": "Order not found."}, 404
+
+        if order.status == 'delivered':
+            return {"message": "Cannot change destination. The parcel has already been delivered."}, 400
+
+        new_destination = request.json.get('destination')
+        if not new_destination:
+            return {"error": "Destination is required."}, 400
+
+        parcel.destination = new_destination
+        db.session.commit()
+
+        response_data = {'message': 'Parcel destination updated successfully.'}
+        return response_data, 200
+
+
+
 class CancelParcel(Resource):
-    @jwt_required
+    @jwt_required()
     def post(self, parcel_id):
-        user_id = get_jwt_identity()
+        user_info = get_jwt_identity()
+        user_id = user_info.get('userId')
         parcel = Parcel.query.get(parcel_id)
-        if parcel and parcel.user_id == user_id and parcel.status != 'delivered':
-            parcel.status = 'cancelled'
-            db.session.commit()
-            return make_response(jsonify({"message": "Parcel cancelled successfully! We've halted delivery for this parcel.", "parcel": parcel.__repr__()}), 200)
-        else:
-            return make_response(jsonify({"message": "Sorry, we can't cancel this parcel."}), 400)
+
+        if not parcel:
+            return {"message": "Parcel not found."}, 404
+
+        if parcel.user_id != user_id:
+            return {"message": "Unauthorized access. You are not allowed to cancel this parcel."}, 403
+
+        order = Order.query.filter(Order.parcel_id==parcel_id).first()
+        if not order:
+            return {"message": "Order not found."}, 404
+
+        if order.status == 'delivered':
+            return {"message": "Cannot cancel. The parcel has already been delivered."}, 400
+
+        order.status = 'canceled'
+        db.session.commit()
+
+        response_data = {
+            "message": "Parcel cancelled successfully! We've halted delivery for this parcel."
+        }
+
+        return response_data, 200
 
 
 # # Route 5: Get a list of all parcel deliveries associated to a user
