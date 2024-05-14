@@ -47,5 +47,4 @@ class UserById(Resource):
     return make_response(jsonify({"Message":"User deleted"}), 200)
 
 api.add_resource(UserById, '/users/<string:id>')
-    
-    
+
