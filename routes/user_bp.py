@@ -33,7 +33,8 @@ class UserById(Resource):
     user.email = data.get('email',user.email)
     user.is_admin = data.get('is_admin',user.is_admin)
     db.session.commit()
-    return make_response(jsonify({"Message":"User updated successfully"}), 201)
+    result = userSchema.dump(user)
+    return make_response(jsonify(result), 201)
 
 api.add_resource(UserById, '/users/<string:id>')
     
