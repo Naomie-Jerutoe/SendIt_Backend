@@ -126,12 +126,6 @@ try:
             "username": "max"
         },
         {
-            "email": "may@gmail.com",
-            "id": 30,
-            "is_admin": False,
-            "username": "may"
-        },
-        {
             "email": "mat@gmail.com",
             "id": 32,
             "is_admin": True,
@@ -148,12 +142,6 @@ try:
             "id": 35,
             "is_admin": False,
             "username": "Brian K"
-        },
-        {
-            "email": "sirbrian8@gmail.com",
-            "id": 36,
-            "is_admin": False,
-            "username": "sirbrian"
         },
         {
             "email": "sirbryo@gmail.com",
@@ -204,3 +192,14 @@ try:
     print("-------------------------------------UPDATED USER 5 SUCCESSFULLY-----------------------------")
 except Exception:
     print("-------------------------------------UPDATING USER 5 FAILED-----------------------------")   
+
+try:
+    import requests
+    user_id = 37  
+    response = requests.delete(f'http://localhost:5000/users/{user_id}')
+
+    assert response.status_code == 200
+    assert response.json() == { "Message": "User deleted"}
+    print("-------------------------------------DELETED USER 37 SUCCESSFULLY-----------------------------")
+except Exception:
+    print("-------------------------------------DELETING USER 37 FAILED-----------------------------")
