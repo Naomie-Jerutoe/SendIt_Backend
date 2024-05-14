@@ -21,6 +21,8 @@ api.add_resource(Users, '/users')
 class UserById(Resource):
   def get(self, id):
     user = User.query.filter_by(id=id).first()
+    if not user:
+      return make_response(jsonify({"Message":"User not found"}),404)
     result = userSchema.dump(user)
     return make_response(jsonify(result),200)
   
@@ -35,6 +37,14 @@ class UserById(Resource):
     db.session.commit()
     result = userSchema.dump(user)
     return make_response(jsonify(result), 201)
+  
+  def delete(self, id):
+    user = User.query.filter_by(id=id).first()
+    if not user:
+      return make_response(jsonify({"Message":"User not found"}), 404)
+    db.session.delete(user)
+    db.session.commit()
+    return make_response(jsonify({"Message":"User deleted"}), 200)
 
 api.add_resource(UserById, '/users/<string:id>')
     
