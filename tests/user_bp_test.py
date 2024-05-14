@@ -6,12 +6,6 @@ try:
     assert response.status_code == 200
     assert response.json() == [
         {
-            "email": "John@email.com",
-            "id": 5,
-            "is_admin": False,
-            "username": "davidjohn"
-        },
-        {
             "email": "sivel123@email.com",
             "id": 6,
             "is_admin": True,
@@ -166,6 +160,12 @@ try:
             "id": 37,
             "is_admin": True,
             "username": "sirbryo"
+        },
+        {
+            "email": "John@email.com",
+            "id": 5,
+            "is_admin": False,
+            "username": "davidjohn"
         }
     ]
     print('-----------------------------------GOT ALL USERS SUCCESSFULLY-----------------------------------------')
@@ -178,7 +178,6 @@ try:
     response = requests.get(f'http://localhost:5000/users/{user_id}')
 
     assert response.status_code == 200
-    print (response.json())
     assert response.json() == {
             "email": "John@email.com",
             "id": 5,
@@ -188,4 +187,20 @@ try:
     print('-----------------------------------GOT USER 5 SUCCESSFULLY-----------------------------------------')
 except Exception:
     print("-------------------------------------GETTING USER 5 FAILED-----------------------------")
-   
+
+try:
+    import requests
+    user_id = 5  
+    data = {'username': 'davidjohn'}
+    response = requests.patch(f'http://localhost:5000/users/{user_id}', json=data)
+
+    assert response.status_code == 201
+    assert response.json() == {
+        "email": "John@email.com",
+        "id": 5,
+        "is_admin": False,
+        "username": "davidjohn"
+    }
+    print("-------------------------------------UPDATED USER 5 SUCCESSFULLY-----------------------------")
+except Exception:
+    print("-------------------------------------UPDATING USER 5 FAILED-----------------------------")   
