@@ -3,3 +3,7 @@ __pycache__/models.cpython-311.pyc
 migrations/__pycache__/env.cpython-311.pyc
 migrations/versions/__pycache__/7ba191be411a_initial_migrations.cpython-311.pyc
 .vscode/settings.json
+routes/parcel_bp.py
+wsgi.py
+routes/parcel_bp.py
+routes/parcel_bp.py

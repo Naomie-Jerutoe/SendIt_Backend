@@ -25,7 +25,7 @@ class Parcel(db.Model):
   weight = db.Column(db.Float, nullable=False)
   price = db.Column(db.Float, nullable=True)
   description = db.Column(db.String)
-  
+
   users = db.relationship('User', backref='parcels')
   
   def __repr__(self):

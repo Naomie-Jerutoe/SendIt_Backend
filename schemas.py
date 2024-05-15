@@ -23,7 +23,7 @@ class OrderSchema(SQLAlchemyAutoSchema):
     
     parcel = Nested(ParcelSchema, many=True)
 
-OrderSchema = OrderSchema()
+orderSchema = OrderSchema()
 
 class ProfileSchema(SQLAlchemyAutoSchema):
     class Meta:
