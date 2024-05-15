@@ -55,7 +55,7 @@ class ViewAndCreateParcel(Resource):
         weight = data.get('weight')
         price = data.get('price')
         description = data.get('description')
-        
+
         new_parcel = Parcel(
             user_id=user_id, 
             pickup_location = pickup_location,
@@ -78,6 +78,7 @@ api.add_resource(ViewAndCreateParcel, '/parcels')
 
 # Route 2: Get details of a parcel order by parcel ID
 class GetParcel(Resource):
+    @jwt_required()
     @jwt_required()
     def get(self, parcel_id):
         parcel = Parcel.query.options(joinedload(Parcel.orders)).filter_by(id=parcel_id).first()
@@ -109,7 +110,10 @@ api.add_resource(GetParcel, '/parcels/<int:parcel_id>')
 # Route 3: Change destination of a specific parcel delivery order
 class ChangeRoute(Resource):
     @jwt_required()
+    @jwt_required()
     def put(self, parcel_id):
+        user_info = get_jwt_identity()
+        user_id = user_info.get('userId')
         user_info = get_jwt_identity()
         user_id = user_info.get('userId')
         parcel = Parcel.query.get(parcel_id)
@@ -143,7 +147,10 @@ api.add_resource(ChangeRoute, '/parcels/<int:parcel_id>/destination')
 # # Route 4: Cancel a specific parcel delivery order
 class CancelParcel(Resource):
     @jwt_required()
+    @jwt_required()
     def post(self, parcel_id):
+        user_info = get_jwt_identity()
+        user_id = user_info.get('userId')
         user_info = get_jwt_identity()
         user_id = user_info.get('userId')
         parcel = Parcel.query.get(parcel_id)
@@ -174,6 +181,7 @@ api.add_resource(CancelParcel, '/parcels/<int:parcel_id>/cancel')
 
 # # Route 5: Get a list of all parcel deliveries associated to a user
 class GetUserParcels(Resource):
+    @jwt_required()
     @jwt_required()
     def get(self, user_id):
         parcels = (
