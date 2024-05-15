@@ -46,10 +46,10 @@ class SignUpResource(Resource):
         try:
             db.session.add(new_user)
             db.session.commit()
-            return make_response(jsonify({'message': 'User registered successfully'}), 200)
+            return (jsonify({'message': 'User registered successfully'}), 200)
         except IntegrityError:
             db.session.rollback()
-            return make_response(jsonify({'error': 'User already exists'}), 400)
+            return (jsonify({'error': 'User already exists'}), 400)
         
 api.add_resource(SignUpResource, '/signup')
 
@@ -169,4 +169,3 @@ class ResetPassword(Resource):
         return make_response(jsonify({'message': 'Password reset successfully'}), 200)
 
 api.add_resource(ResetPassword, '/resetpassword')
-

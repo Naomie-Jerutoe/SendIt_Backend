@@ -14,9 +14,14 @@ class ViewAndCreateParcel(Resource):
         user = User.query.get(user_id)
         if user.is_admin:
             parcels = Parcel.query.all()
-            return make_response(jsonify({"message": "As an admin, you have access to all parcels. Here they are!", "parcels": [parcel.__repr__() for parcel in parcels]}), 200)
-        else:
-            return make_response(jsonify({"message": "Unauthorized access. Only admins can view all parcels."}), 403)
+        return make_response(jsonify({"message": "As an admin, you have access to all parcels. Here they are!", 
+                                "parcels": [
+                                    {"id":parcel.id, 
+                                    "pickup_location": parcel.pickup_location, 
+                                    "destination": parcel.destination, 
+                                    "weight":parcel.weight, 
+                                    "price": parcel.price, 
+                                    "description": parcel.description} for parcel in parcels]}), 200)
     
     @jwt_required
     def post(self):
