@@ -39,6 +39,10 @@ def create_app():
     JWTManager(app)
     CORS(app)
     
+    @app.route('/')
+    def index():
+        return '<h1>Welcome to SendIt App</h1>'
+    
     #Register the blueprint
     app.register_blueprint(parcel_bp)
     app.register_blueprint(profile_bp)
@@ -50,5 +54,5 @@ def create_app():
 
 app = create_app()
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
