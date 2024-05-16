@@ -4,13 +4,14 @@ from flask_marshmallow import Marshmallow
 from models import db, User
 from flask_jwt_extended import  jwt_required
 from schemas import userSchema
+from auth_middleware import admin_required
 
 user_bp = Blueprint('user_bp', __name__)
 ma = Marshmallow(user_bp)
 api = Api(user_bp)
 
 class Users(Resource):
-  #@jwt_required()
+  @admin_required
   def get(self):
     users = User.query.all()
     result = userSchema.dump(users, many=True)
@@ -20,6 +21,7 @@ class Users(Resource):
 api.add_resource(Users, '/users')
 
 class UserById(Resource):
+  @admin_required
   def get(self, id):
     user = User.query.filter_by(id=id).first()
     if not user:
@@ -27,6 +29,7 @@ class UserById(Resource):
     result = userSchema.dump(user)
     return make_response(jsonify(result),200)
   
+  @admin_required
   def patch(self, id):
     user = User.query.filter_by(id=id).first()
     if not user:
@@ -39,6 +42,7 @@ class UserById(Resource):
     result = userSchema.dump(user)
     return make_response(jsonify(result), 201)
   
+  @admin_required
   def delete(self, id):
     user = User.query.filter_by(id=id).first()
     if not user:
