@@ -4,13 +4,14 @@ from flask_marshmallow import Marshmallow
 from models import db, User
 from flask_jwt_extended import  jwt_required
 from schemas import userSchema
+from auth_middleware import admin_required
 
 user_bp = Blueprint('user_bp', __name__)
 ma = Marshmallow(user_bp)
 api = Api(user_bp)
 
 class Users(Resource):
-  #@jwt_required()
+  @admin_required
   def get(self):
     users = User.query.all()
     result = userSchema.dump(users, many=True)
@@ -20,11 +21,35 @@ class Users(Resource):
 api.add_resource(Users, '/users')
 
 class UserById(Resource):
+  @admin_required
   def get(self, id):
     user = User.query.filter_by(id=id).first()
+    if not user:
+      return make_response(jsonify({"Message":"User not found"}),404)
     result = userSchema.dump(user)
     return make_response(jsonify(result),200)
+  
+  @admin_required
+  def patch(self, id):
+    user = User.query.filter_by(id=id).first()
+    if not user:
+      return make_response(jsonify({"message":"user not found"}), 404)
+    data = request.get_json()
+    user.username = data.get('username',user.username)
+    user.email = data.get('email',user.email)
+    user.is_admin = data.get('is_admin',user.is_admin)
+    db.session.commit()
+    result = userSchema.dump(user)
+    return make_response(jsonify(result), 201)
+  
+  @admin_required
+  def delete(self, id):
+    user = User.query.filter_by(id=id).first()
+    if not user:
+      return make_response(jsonify({"Message":"User not found"}), 404)
+    db.session.delete(user)
+    db.session.commit()
+    return make_response(jsonify({"Message":"User deleted"}), 200)
 
-api.add_resource(UserById, '/users/<string:id>')    
-    
-    
+api.add_resource(UserById, '/users/<string:id>')
+
