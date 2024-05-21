@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 from threading import Thread
 from dotenv import load_dotenv
 import os
+import re
 
 load_dotenv()
 
@@ -134,8 +135,9 @@ class ForgotPassword(Resource):
     def post(self):
         data = request.get_json()
         email = data.get('email')
-        if not email:
-            return make_response(jsonify({'error': 'Missing email field'}), 400)
+        
+        if not email or not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
+            return make_response(jsonify({'error': 'Invalid email address'}), 400)
 
         user = User.query.filter_by(email=email).first()
         if not user:
@@ -211,14 +213,17 @@ class ResetPassword(Resource):
         token = data.get('token')
         new_password = data.get('password')
 
-        if not token or not new_password:
-            return make_response(jsonify({'error': 'Missing token or password field'}), 400)
+        if not token:
+            return make_response(jsonify({'error': 'Missing reset token'}), 400)
+
+        if not new_password:
+            return make_response(jsonify({'error': 'Missing new password'}), 400)
 
         # Verify if the token is valid and not expired
         try:
             email = serializer.loads(token, salt='reset-password', max_age=3600)
-        except:
-            return make_response(jsonify({'error': 'Invalid or expired token'}), 400)
+        except Exception as e:
+            return make_response(jsonify({'error': 'Invalid or expired token', 'message': str(e)}), 400)
 
         user_id = reset_tokens.get(token)
         if not user_id:
