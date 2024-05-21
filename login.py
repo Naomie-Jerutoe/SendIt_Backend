@@ -7,6 +7,13 @@ from auth_middleware import admin_required
 from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer
 from flask_restful import Api, Resource
+import smtplib
+from email.mime.text import MIMEText
+from threading import Thread
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 users_bp = Blueprint('users', __name__)
 bcrypt = Bcrypt()
@@ -18,6 +25,17 @@ serializer = URLSafeTimedSerializer(SECRET_KEY)
 
 # Store reset tokens and their associated users in a dictionary
 reset_tokens = {}
+
+smtp_server = "smtp.gmail.com"
+smtp_port = 587
+smtp_username = os.environ.get('SMTP_USERNAME')
+smtp_password = os.environ.get('SMTP_PASSWORD')
+
+def send_email_async(msg):
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.send_message(msg)
 
 # @users_bp.route('/signup', methods=['POST'])
 class SignUpResource(Resource):   
@@ -129,8 +147,60 @@ class ForgotPassword(Resource):
         # Store the token and user ID in reset_tokens
         reset_tokens[token] = user.id
 
-        # Render a template with the token to be displayed to the user
-        return render_template('reset_password.html', token=token)
+        # Create an HTML email message
+        html_body = f"""\
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Password Reset Request</title>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    background-color: #f5f5f5;
+                    color: #333333;
+                }}
+                .container {{
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: #ffffff;
+                    border-radius: 5px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }}
+                h1 {{
+                    color: #007bff;
+                }}
+                .token {{
+                    font-size: 14px;
+                    font-weight: bold;
+                    color: blue;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Password Reset Request</h1>
+                <p>Dear User,</p>
+                <p>You have requested to reset your password. Please use the following token to complete the password reset process:</p>
+                <p class="token">{token}</p>
+                <p>If you did not request this password reset, you can safely ignore this email.</p>
+                <p>Thank you,<br>The SendIt Team</p>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg = MIMEText(html_body, 'html')
+        msg['Subject'] = "Password Reset Request"
+        msg['From'] = smtp_username
+        msg['To'] = email
+
+        try:
+            Thread(target=send_email_async, args=(msg,)).start()
+            return make_response(jsonify({'message': 'Password reset token sent to your email'}), 200)
+        except Exception as e:
+            return make_response(jsonify({'error': str(e)}), 500)
 
 api.add_resource(ForgotPassword, '/forgot_password')
 
