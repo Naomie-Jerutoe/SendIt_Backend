@@ -38,33 +38,18 @@ api.add_resource(OrderResource, '/orders')
 class OrderDetailResource(Resource):
     @jwt_required()
     def get(self, order_id):
-        user_claims = get_jwt()
-        user_id = user_claims['sub'].get('userId')
-        user = User.query.filter_by(id=user_id).first()
-        if not user:
-            return make_response(jsonify({'message': 'User not found'}), 404)
+        order = Order.query.filter_by(id=order_id).first()
         
-        # Iterate through user's parcels to find the order
-        order = None
-        for parcel in user.parcels:
-            if parcel.orders:
-                for ord in parcel.orders:
-                    if ord.id == order_id:
-                        order = ord
-                        break
-                if order:
-                    break
-        
-        if not order:
+        if order is None:
             return make_response(jsonify({'message': 'Order not found'}), 404)
         
-        order_details = {
+        order_status = {
             'id': order.id,
             'status': order.status,
             'parcel_id': order.parcel_id
         }
-    
-        return make_response(jsonify({'order': order_details}), 200)
+        
+        return make_response(jsonify({'order_status': order_status}), 200)
     
     @admin_required
     def put(self, order_id):
