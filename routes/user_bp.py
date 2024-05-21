@@ -11,7 +11,7 @@ ma = Marshmallow(user_bp)
 api = Api(user_bp)
 
 class Users(Resource):
-  # @admin_required
+  @admin_required
   def get(self):
     users = User.query.all()
     result = userSchema.dump(users, many=True)
@@ -21,7 +21,7 @@ class Users(Resource):
 api.add_resource(Users, '/users')
 
 class UserById(Resource):
-  # @admin_required
+  @jwt_required()
   def get(self, id):
     user = User.query.filter_by(id=id).first()
     if not user:
@@ -29,7 +29,7 @@ class UserById(Resource):
     result = userSchema.dump(user)
     return make_response(jsonify(result),200)
   
-  # @admin_required
+  @admin_required
   def patch(self, id):
     user = User.query.filter_by(id=id).first()
     if not user:
@@ -42,7 +42,7 @@ class UserById(Resource):
     result = userSchema.dump(user)
     return make_response(jsonify(result), 201)
   
-  # @admin_required
+  @admin_required
   def delete(self, id):
     user = User.query.filter_by(id=id).first()
     if not user:
