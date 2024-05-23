@@ -103,6 +103,18 @@ class GetParcel(Resource):
             "message": f"Parcel with ID {parcel_id} retrieved successfully",
             "parcel": parcel_data
         }), 200)
+        
+    @jwt_required()
+    def delete(self, parcel_id):
+        parcel = Parcel.query.filter_by(id=parcel_id).first()
+
+        if not parcel:
+            return make_response(jsonify({"message": "Oops! We couldn't find a parcel with that ID."}), 404)
+
+        db.session.delete(parcel)
+        db.session.commit()
+
+        return make_response(jsonify({"message": f"Parcel with ID {parcel_id} deleted successfully"}), 200)
 
 api.add_resource(GetParcel, '/parcels/<int:parcel_id>')
 

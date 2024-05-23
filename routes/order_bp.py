@@ -70,6 +70,18 @@ class OrderDetailResource(Resource):
         send_email_notification(user_email, new_status, user_username)
         
         return make_response(jsonify({"msg": "Order status updated successfully"}), 200)
+    
+    @admin_required
+    def delete(self, order_id):
+        order = Order.query.filter_by(id=order_id).first()
+        
+        if order is None:
+            return make_response(jsonify({'message': 'Order not found'}), 404)
+        
+        db.session.delete(order)
+        db.session.commit()
+        
+        return make_response(jsonify({'message': 'Order deleted successfully'}), 200)
 
 api.add_resource(OrderDetailResource, '/orders/<int:order_id>')
 
